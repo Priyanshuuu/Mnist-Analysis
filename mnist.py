@@ -77,3 +77,49 @@ correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 init = tf.global_variables_initializer()
+
+with tf.Session() as sess:
+    sess.run(init) 
+    train_loss = []
+    test_loss = []
+    train_accuracy = []
+    test_accuracy = []
+    summary_writer = tf.summary.FileWriter('./Output', sess.graph)
+    for i in range(epochs):
+        for batch in range(len(train_X)//batch_size):
+            batch_x = train_X[batch*batch_size:min((batch+1)*batch_size,len(train_X))]
+            batch_y = train_y[batch*batch_size:min((batch+1)*batch_size,len(train_y))]    
+            opt = sess.run(optimizer, feed_dict={x: batch_x,
+                                                              y: batch_y})
+            loss, acc = sess.run([cost, accuracy], feed_dict={x: batch_x,
+                                                              y: batch_y})
+        print("Iter " + str(i) + ", Loss= " + \
+                      "{:.6f}".format(loss) + ", Training Accuracy= " + \
+                      "{:.5f}".format(acc))
+        print("Optimization Finished!")
+
+
+        test_acc,valid_loss = sess.run([accuracy,cost], feed_dict={x: test_X,y : test_y})
+        train_loss.append(loss)
+        test_loss.append(valid_loss)
+        train_accuracy.append(acc)
+        test_accuracy.append(test_acc)
+        print("Testing Accuracy:","{:.5f}".format(test_acc))
+    summary_writer.close()
+plt.plot(range(len(train_loss)), train_loss, 'b', label='Training loss')
+plt.plot(range(len(train_loss)), test_loss, 'r', label='Test loss')
+plt.title('Training and Test loss')
+plt.xlabel('Epochs ',fontsize=16)
+plt.ylabel('Loss',fontsize=16)
+plt.legend()
+plt.figure()
+plt.show()
+
+plt.plot(range(len(train_loss)), train_accuracy, 'b', label='Training Accuracy')
+plt.plot(range(len(train_loss)), test_accuracy, 'r', label='Test Accuracy')
+plt.title('Training and Test Accuracy')
+plt.xlabel('Epochs ',fontsize=16)
+plt.ylabel('Loss',fontsize=16)
+plt.legend()
+plt.figure()
+plt.show()
